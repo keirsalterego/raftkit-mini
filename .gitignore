@@ -1,0 +1,38 @@
+# Rust
+/target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.settings/
+*.sublime-workspace
+
+# Build artifacts
+/debug/
+/release/
+*.o
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Generated files
+.depend
+.depend.bak
+
+# Test output
+tarpaulin-report.html
+cobertura.xml
+
+# Env files
+.env
+.env.local
+.env.*.local
