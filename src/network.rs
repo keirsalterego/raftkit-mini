@@ -11,6 +11,7 @@ use openraft::RaftNetwork;
 
 
 pub struct HttpNetwork {
+    #[allow(dead_code)]
     pub target_id: NodeId,
     pub target_addr: String,
 }
