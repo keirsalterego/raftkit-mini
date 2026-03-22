@@ -1,8 +1,10 @@
 use axum::{Router, routing::{get, post}, extract::{State, Query}, Json};
 use std::sync::Arc;
+use std::collections::BTreeMap;
 
 use crate::types::*;
 use crate::store::KvStateMachine;
+use openraft::BasicNode;
 use openraft::raft::{
     AppendEntriesRequest, AppendEntriesResponse,
     VoteRequest, VoteResponse,
@@ -50,11 +52,24 @@ pub async fn post_raft_vote(
     Json(state.raft.vote(req).await.unwrap())
 }
 
+pub async fn post_cluster_init(
+    State(state): State<Arc<AppState>>,
+) -> &'static str {
+    let mut members = BTreeMap::new();
+    members.insert(1u64, BasicNode { addr: "127.0.0.1:8001".to_string() });
+    members.insert(2u64, BasicNode { addr: "127.0.0.1:8002".to_string() });
+    members.insert(3u64, BasicNode { addr: "127.0.0.1:8003".to_string() });
+
+    state.raft.initialize(members).await.unwrap();
+    "cluster initialized"
+}
+
 pub fn build_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/kv/set", post(post_kv_set))
         .route("/kv/get", get(get_kv_get))
         .route("/raft/append", post(post_raft_append))
         .route("/raft/vote", post(post_raft_vote))
+        .route("/cluster/init", post(post_cluster_init))
         .with_state(state)
 }

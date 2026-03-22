@@ -21,9 +21,10 @@ impl Clone for SledStore {
     }
 }
 
+#[derive(Clone)]
 pub struct KvStateMachine {
     pub data: std::collections::HashMap<String, String>,
-    last_applied: Option<openraft::LogId<NodeId>>,
+    pub last_applied: Option<openraft::LogId<NodeId>>,
 }
 
 pub struct KvSnapshotBuilder;
@@ -73,7 +74,24 @@ impl RaftLogStorage<TypeConfig> for SledStore {
     async fn get_log_state(
         &mut self,
     ) -> Result<openraft::LogState<TypeConfig>, StorageError<NodeId>> {
-        unimplemented!()
+        let last = match self.logs.last().map_err(|e| StorageError::from(StorageIOError::read_logs(&e)))? {
+            Some((_key, val)) => {
+                let entry: Entry<TypeConfig> = serde_json::from_slice(&val)
+                    .map_err(|e| StorageError::from(StorageIOError::read_logs(&e)))?;
+                Some(entry.log_id)
+            }
+            None => None,
+        };
+
+        let purged = match self.meta.get(b"purged").map_err(|e| StorageError::from(StorageIOError::read_logs(&e)))? {
+            Some(raw) => Some(serde_json::from_slice(&raw).map_err(|e| StorageError::from(StorageIOError::read_logs(&e)))?),
+            None => None,
+        };
+
+        Ok(openraft::LogState {
+            last_purged_log_id: purged,
+            last_log_id: last,
+        })
     }
 
     async fn get_log_reader(&mut self) -> Self::LogReader {
@@ -82,14 +100,25 @@ impl RaftLogStorage<TypeConfig> for SledStore {
 
     async fn append<I>(
         &mut self,
-        _entries: I,
-        _callback: openraft::storage::LogFlushed<TypeConfig>,
+        entries: I,
+        callback: openraft::storage::LogFlushed<TypeConfig>,
     ) -> Result<(), StorageError<NodeId>>
     where
         I: IntoIterator<Item = openraft::Entry<TypeConfig>> + openraft::OptionalSend,
         I::IntoIter: openraft::OptionalSend,
     {
-        unimplemented!()
+        for entry in entries {
+            let key = serde_json::to_vec(&entry.log_id)
+                .map_err(|e| StorageError::from(StorageIOError::write_logs(&e)))?;
+            let val = serde_json::to_vec(&entry)
+                .map_err(|e| StorageError::from(StorageIOError::write_logs(&e)))?;
+            
+            self.logs.insert(&key, &*val)
+                .map_err(|e| StorageError::from(StorageIOError::write_logs(&e)))?;
+        }
+
+        callback.log_io_completed(Ok(()));
+        Ok(())
     }
 
     async fn truncate(
@@ -201,6 +230,7 @@ impl RaftStateMachine<TypeConfig> for KvStateMachine {
     async fn get_current_snapshot(
         &mut self,
     ) -> Result<Option<Snapshot<TypeConfig>>, StorageError<NodeId>> {
-        unimplemented!()
+        // no snapshot support yet, always return None
+        Ok(None)
     }
 }
