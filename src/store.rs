@@ -70,7 +70,9 @@ impl RaftLogStorage<TypeConfig> for SledStore {
         Ok(Some(vote))
     }
 
-    async fn get_log_state(&mut self) -> Result<openraft::LogState<TypeConfig>, StorageError<NodeId>> {
+    async fn get_log_state(
+        &mut self,
+    ) -> Result<openraft::LogState<TypeConfig>, StorageError<NodeId>> {
         unimplemented!()
     }
 
@@ -78,7 +80,11 @@ impl RaftLogStorage<TypeConfig> for SledStore {
         self.clone()
     }
 
-    async fn append<I>(&mut self, _entries: I, _callback: openraft::storage::LogFlushed<TypeConfig>) -> Result<(), StorageError<NodeId>>
+    async fn append<I>(
+        &mut self,
+        _entries: I,
+        _callback: openraft::storage::LogFlushed<TypeConfig>,
+    ) -> Result<(), StorageError<NodeId>>
     where
         I: IntoIterator<Item = openraft::Entry<TypeConfig>> + openraft::OptionalSend,
         I::IntoIter: openraft::OptionalSend,
@@ -86,17 +92,26 @@ impl RaftLogStorage<TypeConfig> for SledStore {
         unimplemented!()
     }
 
-    async fn truncate(&mut self, _log_id: openraft::LogId<NodeId>) -> Result<(), StorageError<NodeId>> {
+    async fn truncate(
+        &mut self,
+        _log_id: openraft::LogId<NodeId>,
+    ) -> Result<(), StorageError<NodeId>> {
         unimplemented!()
     }
 
-    async fn purge(&mut self, _log_id: openraft::LogId<NodeId>) -> Result<(), StorageError<NodeId>> {
+    async fn purge(
+        &mut self,
+        _log_id: openraft::LogId<NodeId>,
+    ) -> Result<(), StorageError<NodeId>> {
         unimplemented!()
     }
 }
 
 impl openraft::storage::RaftLogReader<TypeConfig> for SledStore {
-    async fn try_get_log_entries<R: std::ops::RangeBounds<u64> + openraft::OptionalSend>(&mut self, _range: R) -> Result<Vec<openraft::Entry<TypeConfig>>, StorageError<NodeId>> {
+    async fn try_get_log_entries<R: std::ops::RangeBounds<u64> + openraft::OptionalSend>(
+        &mut self,
+        _range: R,
+    ) -> Result<Vec<openraft::Entry<TypeConfig>>, StorageError<NodeId>> {
         unimplemented!()
     }
 }
@@ -121,10 +136,13 @@ impl RaftStateMachine<TypeConfig> for KvStateMachine {
 
     async fn applied_state(
         &mut self,
-    ) -> Result<(
-        Option<LogId<NodeId>>,
-        StoredMembership<NodeId, openraft::BasicNode>,
-    ), StorageError<NodeId>> {
+    ) -> Result<
+        (
+            Option<LogId<NodeId>>,
+            StoredMembership<NodeId, openraft::BasicNode>,
+        ),
+        StorageError<NodeId>,
+    > {
         Ok((
             self.last_applied,
             StoredMembership::<NodeId, openraft::BasicNode>::default(),
@@ -167,7 +185,8 @@ impl RaftStateMachine<TypeConfig> for KvStateMachine {
 
     async fn begin_receiving_snapshot(
         &mut self,
-    ) -> Result<Box<<TypeConfig as openraft::RaftTypeConfig>::SnapshotData>, StorageError<NodeId>> {
+    ) -> Result<Box<<TypeConfig as openraft::RaftTypeConfig>::SnapshotData>, StorageError<NodeId>>
+    {
         unimplemented!()
     }
 
