@@ -1,6 +1,7 @@
 use crate::types::*;
 use openraft::network::RPCOption;
 use openraft::error::{RPCError, RaftError, NetworkError, InstallSnapshotError};
+use openraft::BasicNode;
 use openraft::raft::{
     AppendEntriesRequest, AppendEntriesResponse,
     VoteRequest, VoteResponse,
@@ -39,7 +40,7 @@ impl RaftNetwork<TypeConfig> for HttpNetwork {
 
     async fn vote(
         &mut self,
-        rpc: VoteRequest<TypeConfig>,
+        _rpc: VoteRequest<NodeId>,
         _option: RPCOption,
     ) -> Result<
         VoteResponse<NodeId>,
@@ -50,11 +51,11 @@ impl RaftNetwork<TypeConfig> for HttpNetwork {
 
     async fn install_snapshot(
         &mut self,
-        rpc: InstallSnapshotRequest<TypeConfig>,
+        _rpc: InstallSnapshotRequest<TypeConfig>,
         _option: RPCOption,
     ) -> Result<
         InstallSnapshotResponse<NodeId>,
-        RPCError<NodeId, BasicNode, RaftError<NodeId>>,
+        RPCError<NodeId, BasicNode, RaftError<NodeId, InstallSnapshotError>>,
     > {
         unimplemented!()
     }

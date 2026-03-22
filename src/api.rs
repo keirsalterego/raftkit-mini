@@ -2,6 +2,7 @@ use axum::{Router, routing::{get, post}, extract::{State, Query}, Json};
 use std::sync::Arc;
 
 use crate::types::*;
+use crate::store::KvStateMachine;
 use openraft::raft::{
     AppendEntriesRequest, AppendEntriesResponse,
     VoteRequest, VoteResponse,
