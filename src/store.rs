@@ -22,7 +22,7 @@ impl Clone for SledStore {
 }
 
 pub struct KvStateMachine {
-    data: std::collections::HashMap<String, String>,
+    pub data: std::collections::HashMap<String, String>,
     last_applied: Option<openraft::LogId<NodeId>>,
 }
 
